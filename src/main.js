@@ -34,7 +34,7 @@ function calculateSimpleRevenue(purchase, _product) {
   const profit = revenue - _product.purchase_price * purchase.quantity;
 
   // return { revenue, profit };
-  return profit;
+  return revenue;
 }
 
 /**
