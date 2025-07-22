@@ -44,25 +44,21 @@ function calculateSimpleRevenue(purchase, _product) {
  * @param {object} seller карточка продавца
  * @returns {number}
  */
-function calculateBonusByProfit(revenue, index, total) {
+function calculateBonusByProfit(profit, index, total) {
   // @TODO: Расчет бонуса от позиции в рейтинге
 
   let bonusPercent = 0;
 
   if (index === 0) {
-    // Первое место - максимальный бонус
     bonusPercent = 15;
   } else if (index <= 2) {
-    // Второе и третье место
     bonusPercent = 10;
   } else if (index < total - 1) {
-    // Все остальные, кроме последнего
     bonusPercent = 5;
   } else {
-    // Последнее место
     bonusPercent = 0;
   }
-  return (revenue * bonusPercent) / 100;
+  return (profit * bonusPercent) / 100;
 }
 
 /**
@@ -131,8 +127,8 @@ function analyzeSalesData(data, options = {}) {
       if (!product) return;
 
       // Расчет прибыли и выручки
-      const profit = calculateSimpleRevenue(item, product);
-      const revenue = (item.sale_price - (item.discount / 100) * item.sale_price) * item.quantity;
+      const revenue = calculateSimpleRevenue(item, product);
+      const profit = revenue - (product.purchase_price * item.quantity);
 
       // Обновление статистики продавца
       salesStats[sellerId].revenue += revenue;
