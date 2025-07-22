@@ -59,9 +59,10 @@ function calculateBonusByProfit(index, total, seller) {
   } else {
     bonusPercent = 0;
   }
-
+  
   return (profit * bonusPercent) / 100;
 }
+
 
 /**
  * Функция для анализа данных продаж
@@ -101,7 +102,7 @@ function analyzeSalesData(data, options = {}) {
   const salesStats = {};
 
   // Проход по всем чекам
-
+  
   data.purchase_records.forEach((receipt) => {
     const sellerId = receipt.seller_id;
 
@@ -133,7 +134,7 @@ function analyzeSalesData(data, options = {}) {
 
       // Расчет прибыли и выручки
       const revenue = calculateSimpleRevenue(item, product);
-      const profit = revenue - product.purchase_price * item.quantity;
+      const profit = revenue - (product.purchase_price * item.quantity);
 
       // Обновление статистики продавца
       salesStats[sellerId].revenue += revenue;
@@ -166,7 +167,7 @@ function analyzeSalesData(data, options = {}) {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 10);
 
-    // Рассчитываем бонус
+    // Рассчитываем бонус ОДИН РАЗ
     const bonus = calculateBonusByProfit(index, result.length, stat);
 
     return {
@@ -176,7 +177,7 @@ function analyzeSalesData(data, options = {}) {
       profit: parseFloat(stat.profit.toFixed(2)),
       sales_count: stat.sales_count,
       top_products: topProductsArray,
-      bonus: parseFloat(bonus.toFixed(2)), // Используем уже рассчитанный бонус
+      bonus: parseFloat(bonus.toFixed(2)) // Используем уже рассчитанный бонус
     };
   });
 
