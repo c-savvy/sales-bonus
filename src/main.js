@@ -44,7 +44,7 @@ function calculateSimpleRevenue(purchase, _product) {
  * @param {object} seller карточка продавца
  * @returns {number}
  */
-function calculateBonusByProfit(profit, index, total) {
+function calculateBonusByProfit(revenue, index, total) {
   // @TODO: Расчет бонуса от позиции в рейтинге
 
   let bonusPercent = 0;
@@ -62,7 +62,7 @@ function calculateBonusByProfit(profit, index, total) {
     // Последнее место
     bonusPercent = 0;
   }
-  return (profit * bonusPercent) / 100;
+  return (revenue * bonusPercent) / 100;
 }
 
 /**
