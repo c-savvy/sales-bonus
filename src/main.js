@@ -72,11 +72,36 @@ function calculateBonusByProfit(index, total, seller) {
 function analyzeSalesData(data, options = {}) {
   // @TODO: Проверка входных данных
 
-  if (!data || !data.purchase_records || !data.products) {
-    throw new Error("Неверные входные данные");
+  if (!data) {
+    throw new Error("Данные не переданы");
   }
 
-  // @TODO: Проверка наличия опций
+  // Проверка корректности переданных функций в опциях
+  if (
+    options.calculateRevenue &&
+    typeof options.calculateRevenue !== "function"
+  ) {
+    throw new Error("calculateRevenue должна быть функцией");
+  }
+
+  if (options.calculateBonus && typeof options.calculateBonus !== "function") {
+    throw new Error("calculateBonus должна быть функцией");
+  }
+  // Проверка наличия обязательных массивов
+  if (!Array.isArray(data.sellers) || data.sellers.length === 0) {
+    throw new Error("Массив продавцов пуст или не является массивом");
+  }
+
+  if (!Array.isArray(data.products) || data.products.length === 0) {
+    throw new Error("Массив товаров пуст или не является массивом");
+  }
+
+  if (
+    !Array.isArray(data.purchase_records) ||
+    data.purchase_records.length === 0
+  ) {
+    throw new Error("Массив чеков пуст или не является массивом");
+  }
 
   // @TODO: Подготовка промежуточных данных для сбора статистики
 
