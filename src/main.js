@@ -1,3 +1,6 @@
+function round(value) {
+  return Math.round(value * 100) / 100;
+}
 /**
  * Функция для расчета прибыли
  * @param {object} purchase запись о покупке
@@ -25,13 +28,15 @@ function calculateSimpleRevenue(purchase, _product) {
   }
 
   // Расчет скидки в рублях
-  const discountAmount = (purchase.discount / 100) * purchase.sale_price;
+  const discountAmount = round((purchase.discount / 100) * purchase.sale_price);
 
   // Расчет выручки с учетом скидки
-  const revenue = (purchase.sale_price - discountAmount) * purchase.quantity;
+  const revenue = round(
+    (purchase.sale_price - discountAmount) * purchase.quantity
+  );
 
   // Расчет прибыли (выручка минус закупочная цена)
-  const profit = revenue - _product.purchase_price * purchase.quantity;
+  const profit = round(revenue - _product.purchase_price * purchase.quantity);
 
   // return { revenue, profit };
   return revenue;
@@ -96,7 +101,7 @@ function analyzeSalesData(data, options = {}) {
   }
 
   // Проверка наличия обязательных массивов
-  
+
   if (!Array.isArray(data.sellers) || data.sellers.length === 0) {
     throw new Error("Массив продавцов пуст или не является массивом");
   }
@@ -170,8 +175,12 @@ function analyzeSalesData(data, options = {}) {
       const profit = revenue - product.purchase_price * item.quantity;
 
       // Обновление статистики продавца
-      salesStats[sellerId].revenue += revenue;
-      salesStats[sellerId].profit += profit;
+      salesStats[sellerId].revenue = round(
+        salesStats[sellerId].revenue + revenue
+      );
+      salesStats[sellerId].profit = round(
+        salesStats[sellerId].profit + profit
+      );
 
       // Подсчет популярных товаров
       if (!salesStats[sellerId].top_products[item.sku]) {
@@ -203,16 +212,16 @@ function analyzeSalesData(data, options = {}) {
     // Рассчитываем бонус
     const bonus = calculateBonusByProfit(index, result.length, stat);
 
-        return {
-            seller_id: stat.seller_id,
-            name: stat.name,
-            revenue: parseFloat(stat.revenue.toFixed(2)),
-            profit: parseFloat(stat.profit.toFixed(2)),
-            sales_count: stat.sales_count,
-            top_products: topProductsArray,
-            bonus: parseFloat(bonus.toFixed(2))
-        };
-    });
+    return {
+      seller_id: stat.seller_id,
+      name: stat.name,
+      revenue: parseFloat(stat.revenue.toFixed(2)),
+      profit: parseFloat(stat.profit.toFixed(2)),
+      sales_count: stat.sales_count,
+      top_products: topProductsArray,
+      bonus: parseFloat(bonus.toFixed(2)),
+    };
+  });
 
   // @TODO: Подготовка итоговой коллекции с нужными полями
 }
