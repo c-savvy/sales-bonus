@@ -25,13 +25,19 @@ function calculateSimpleRevenue(purchase, _product) {
   }
 
   // Расчет скидки в рублях
-  const discountAmount = (purchase.discount / 100) * purchase.sale_price;
+    const discountAmount = parseFloat(
+        ((purchase.discount / 100) * purchase.sale_price).toFixed(2)
+    );
 
   // Расчет выручки с учетом скидки
-  const revenue = (purchase.sale_price - discountAmount) * purchase.quantity;
+    const revenue = parseFloat(
+        ((purchase.sale_price - discountAmount) * purchase.quantity).toFixed(2)
+    );
 
   // Расчет прибыли (выручка минус закупочная цена)
-  const profit = revenue - _product.purchase_price * purchase.quantity;
+    const profit = parseFloat(
+        (revenue - _product.purchase_price * purchase.quantity).toFixed(2)
+    );
 
   // return { revenue, profit };
   return revenue;
@@ -76,18 +82,27 @@ function analyzeSalesData(data, options = {}) {
     throw new Error("Данные не переданы");
   }
 
-  // Проверка корректности переданных функций в опциях
-  if (
-    options.calculateRevenue &&
-    typeof options.calculateRevenue !== "function"
-  ) {
-    throw new Error("calculateRevenue должна быть функцией");
+  // Проверка корректности опций
+
+  if (typeof options !== "object") {
+    throw new Error("Опции должны быть объектом");
   }
 
-  if (options.calculateBonus && typeof options.calculateBonus !== "function") {
-    throw new Error("calculateBonus должна быть функцией");
+  const { calculateRevenue, calculateBonus } = options;
+
+  if (!calculateRevenue || !calculateBonus) {
+    throw new Error("Не предоставлены необходимые функции расчета");
   }
+
+  if (
+    typeof calculateRevenue !== "function" ||
+    typeof calculateBonus !== "function"
+  ) {
+    throw new Error("Функции расчета должны быть функциями");
+  }
+
   // Проверка наличия обязательных массивов
+
   if (!Array.isArray(data.sellers) || data.sellers.length === 0) {
     throw new Error("Массив продавцов пуст или не является массивом");
   }
@@ -157,12 +172,18 @@ function analyzeSalesData(data, options = {}) {
       if (!product) return;
 
       // Расчет прибыли и выручки
-      const revenue = calculateSimpleRevenue(item, product);
-      const profit = revenue - product.purchase_price * item.quantity;
+    const revenue = calculateSimpleRevenue(item, product);
+    const profit = parseFloat(
+        (revenue - product.purchase_price * item.quantity).toFixed(2)
+    );
 
       // Обновление статистики продавца
-      salesStats[sellerId].revenue += revenue;
-      salesStats[sellerId].profit += profit;
+    salesStats[sellerId].revenue = parseFloat(
+        (salesStats[sellerId].revenue + revenue).toFixed(2)
+    );
+    salesStats[sellerId].profit = parseFloat(
+        (salesStats[sellerId].profit + profit).toFixed(2)
+    );
 
       // Подсчет популярных товаров
       if (!salesStats[sellerId].top_products[item.sku]) {
@@ -192,7 +213,9 @@ function analyzeSalesData(data, options = {}) {
       .slice(0, 10);
 
     // Рассчитываем бонус
-    const bonus = calculateBonusByProfit(index, result.length, stat);
+    const bonus = parseFloat(
+        calculateBonusByProfit(index, result.length, stat).toFixed(2)
+    );
 
     return {
       seller_id: stat.seller_id,
