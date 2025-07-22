@@ -33,7 +33,8 @@ function calculateSimpleRevenue(purchase, _product) {
   // Расчет прибыли (выручка минус закупочная цена)
   const profit = revenue - _product.purchase_price * purchase.quantity;
 
-  return { revenue, profit };
+  // return { revenue, profit };
+  return profit;
 }
 
 /**
@@ -130,7 +131,8 @@ function analyzeSalesData(data, options = {}) {
       if (!product) return;
 
       // Расчет прибыли и выручки
-      const { revenue, profit } = calculateSimpleRevenue(item, product);
+      const profit = calculateSimpleRevenue(item, product);
+      const revenue = (item.sale_price - (item.discount / 100) * item.sale_price) * item.quantity;
 
       // Обновление статистики продавца
       salesStats[sellerId].revenue += revenue;
