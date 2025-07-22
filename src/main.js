@@ -33,7 +33,7 @@ function calculateSimpleRevenue(purchase, _product) {
   // Расчет прибыли (выручка минус закупочная цена)
   const profit = revenue - _product.purchase_price * purchase.quantity;
 
-  return revenue;
+  return { revenue, profit };
 }
 
 /**
@@ -108,14 +108,18 @@ function analyzeSalesData(data, options = {}) {
     // Проверка существования продавца
     if (!sellersMap[sellerId]) return;
 
+    // Создание записи для продавца, если её нет
     if (!salesStats[sellerId]) {
       salesStats[sellerId] = {
         seller_id: sellerId,
-        name: sellersMap[sellerId].first_name + " " + sellersMap[sellerId].last_name,
+        name:
+          sellersMap[sellerId].first_name +
+          " " +
+          sellersMap[sellerId].last_name,
         revenue: 0,
         profit: 0,
         sales_count: 0,
-        top_products: {}
+        top_products: {},
       };
     }
 
@@ -126,10 +130,7 @@ function analyzeSalesData(data, options = {}) {
       if (!product) return;
 
       // Расчет прибыли и выручки
-      const revenue = calculateSimpleRevenue(item, product);
-
-      const cost = product.purchase_price * item.quantity;
-      const profit = revenue - cost;
+      const { revenue, profit } = calculateSimpleRevenue(item, product);
 
       // Обновление статистики продавца
       salesStats[sellerId].revenue += revenue;
