@@ -59,10 +59,9 @@ function calculateBonusByProfit(index, total, seller) {
   } else {
     bonusPercent = 0;
   }
-  
+
   return (profit * bonusPercent) / 100;
 }
-
 
 /**
  * Функция для анализа данных продаж
@@ -73,11 +72,45 @@ function calculateBonusByProfit(index, total, seller) {
 function analyzeSalesData(data, options = {}) {
   // @TODO: Проверка входных данных
 
-  if (!data || !data.purchase_records || !data.products) {
-    throw new Error("Неверные входные данные");
+  if (!data) {
+    throw new Error("Данные не переданы");
   }
 
-  // @TODO: Проверка наличия опций
+  // Проверка корректности опций
+
+  if (typeof options !== "object") {
+    throw new Error("Опции должны быть объектом");
+  }
+
+  const { calculateRevenue, calculateBonus } = options;
+
+  if (!calculateRevenue || !calculateBonus) {
+    throw new Error("Не предоставлены необходимые функции расчета");
+  }
+
+  if (
+    typeof calculateRevenue !== "function" ||
+    typeof calculateBonus !== "function"
+  ) {
+    throw new Error("Функции расчета должны быть функциями");
+  }
+
+  // Проверка наличия обязательных массивов
+
+  if (!Array.isArray(data.sellers) || data.sellers.length === 0) {
+    throw new Error("Массив продавцов пуст или не является массивом");
+  }
+
+  if (!Array.isArray(data.products) || data.products.length === 0) {
+    throw new Error("Массив товаров пуст или не является массивом");
+  }
+
+  if (
+    !Array.isArray(data.purchase_records) ||
+    data.purchase_records.length === 0
+  ) {
+    throw new Error("Массив чеков пуст или не является массивом");
+  }
 
   // @TODO: Подготовка промежуточных данных для сбора статистики
 
@@ -102,7 +135,7 @@ function analyzeSalesData(data, options = {}) {
   const salesStats = {};
 
   // Проход по всем чекам
-  
+
   data.purchase_records.forEach((receipt) => {
     const sellerId = receipt.seller_id;
 
@@ -113,41 +146,39 @@ function analyzeSalesData(data, options = {}) {
     if (!salesStats[sellerId]) {
       salesStats[sellerId] = {
         seller_id: sellerId,
-        name:
-          sellersMap[sellerId].first_name +
-          " " +
-          sellersMap[sellerId].last_name,
+        name: sellersMap[sellerId].first_name + " " + sellersMap[sellerId].last_name,
         revenue: 0,
         profit: 0,
         sales_count: 0,
-        top_products: {},
+        top_products: {}
       };
     }
+
+    // Здесь меняется логика: выручка теперь берётся из total_amount чека
+    salesStats[sellerId].revenue += receipt.total_amount;
     salesStats[sellerId].sales_count++;
 
-    // Подсчет статистики по товарам
-
+    // Подсчет статистики по товарам остаётся без изменений
     receipt.items.forEach((item) => {
       const product = productsMap[item.sku];
-
+      
       if (!product) return;
 
-      // Расчет прибыли и выручки
+      // Расчет прибыли для товара
       const revenue = calculateSimpleRevenue(item, product);
-      const profit = revenue - (product.purchase_price * item.quantity);
+      const profit = revenue - product.purchase_price * item.quantity;
 
-      // Обновление статистики продавца
-      salesStats[sellerId].revenue += revenue;
+      // Обновление статистики продавца по прибыли
       salesStats[sellerId].profit += profit;
 
-      // Подсчет популярных товаров
+      // Подсчет популярных товаров остаётся без изменений
       if (!salesStats[sellerId].top_products[item.sku]) {
         salesStats[sellerId].top_products[item.sku] = 0;
       }
       salesStats[sellerId].top_products[item.sku] += item.quantity;
     });
   });
-
+  
   // Преобразование статистики в массив
   const result = Object.values(salesStats);
 
@@ -167,7 +198,7 @@ function analyzeSalesData(data, options = {}) {
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, 10);
 
-    // Рассчитываем бонус ОДИН РАЗ
+    // Рассчитываем бонус
     const bonus = calculateBonusByProfit(index, result.length, stat);
 
     return {
@@ -177,7 +208,7 @@ function analyzeSalesData(data, options = {}) {
       profit: parseFloat(stat.profit.toFixed(2)),
       sales_count: stat.sales_count,
       top_products: topProductsArray,
-      bonus: parseFloat(bonus.toFixed(2)) // Используем уже рассчитанный бонус
+      bonus: parseFloat(bonus.toFixed(2)),
     };
   });
 

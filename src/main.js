@@ -1,6 +1,3 @@
-function round(value) {
-  return Math.round(value * 100) / 100;
-}
 /**
  * Функция для расчета прибыли
  * @param {object} purchase запись о покупке
@@ -28,15 +25,13 @@ function calculateSimpleRevenue(purchase, _product) {
   }
 
   // Расчет скидки в рублях
-  const discountAmount = round((purchase.discount / 100) * purchase.sale_price);
+  const discountAmount = (purchase.discount / 100) * purchase.sale_price;
 
   // Расчет выручки с учетом скидки
-  const revenue = round(
-    (purchase.sale_price - discountAmount) * purchase.quantity
-  );
+  const revenue = (purchase.sale_price - discountAmount) * purchase.quantity;
 
   // Расчет прибыли (выручка минус закупочная цена)
-  const profit = round(revenue - _product.purchase_price * purchase.quantity);
+  const profit = revenue - _product.purchase_price * purchase.quantity;
 
   // return { revenue, profit };
   return revenue;
@@ -151,45 +146,39 @@ function analyzeSalesData(data, options = {}) {
     if (!salesStats[sellerId]) {
       salesStats[sellerId] = {
         seller_id: sellerId,
-        name:
-          sellersMap[sellerId].first_name +
-          " " +
-          sellersMap[sellerId].last_name,
+        name: sellersMap[sellerId].first_name + " " + sellersMap[sellerId].last_name,
         revenue: 0,
         profit: 0,
         sales_count: 0,
-        top_products: {},
+        top_products: {}
       };
     }
+
+    // Здесь меняется логика: выручка теперь берётся из total_amount чека
+    salesStats[sellerId].revenue += receipt.total_amount;
     salesStats[sellerId].sales_count++;
 
-    // Подсчет статистики по товарам
-
+    // Подсчет статистики по товарам остаётся без изменений
     receipt.items.forEach((item) => {
       const product = productsMap[item.sku];
-
+      
       if (!product) return;
 
-      // Расчет прибыли и выручки
+      // Расчет прибыли для товара
       const revenue = calculateSimpleRevenue(item, product);
       const profit = revenue - product.purchase_price * item.quantity;
 
-      // Обновление статистики продавца
-      salesStats[sellerId].revenue = round(
-        salesStats[sellerId].revenue + revenue
-      );
-      salesStats[sellerId].profit = round(
-        salesStats[sellerId].profit + profit
-      );
+      // Обновление статистики продавца по прибыли
+      salesStats[sellerId].profit += profit;
 
-      // Подсчет популярных товаров
+      // Подсчет популярных товаров остаётся без изменений
       if (!salesStats[sellerId].top_products[item.sku]) {
         salesStats[sellerId].top_products[item.sku] = 0;
       }
       salesStats[sellerId].top_products[item.sku] += item.quantity;
     });
   });
-
+  
   // Преобразование статистики в массив
   const result = Object.values(salesStats);
 
